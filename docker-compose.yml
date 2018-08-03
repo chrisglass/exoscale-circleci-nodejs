@@ -1,0 +1,9 @@
+version: '3'
+services:
+  exoscale-ci-node-app:
+    build: .
+    image: exoscale/exoscale-ci-node-app:latest
+    ports:
+      - "80:3000"
+    environment:
+      - APP_VERSION=$APP_VERSION

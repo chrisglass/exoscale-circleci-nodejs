@@ -1,0 +1,75 @@
+version: 2
+
+jobs:
+
+  test:
+    machine:
+      docker_layer_cachine: true
+    steps:
+      - checkout
+      - run: docker-compose build
+      - run: APP_VERSION=$CIRCLE_SHA1 docker-compose up -d
+      - run:
+          name: Curl the app to check it is running the correct version
+          command: |
+            [[ $(curl -q "http://localhost") == "Version: $CIRCLE_SHA1" ]] || false
+      - run: docker-compose down
+
+  build:
+    machine:
+      docker_layer_caching: true
+    environment:
+      - IMAGE_NAME: exoscale/exoscale-circleci-node-app
+    steps:
+      - checkout
+      - run: docker-compose build
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASS
+      - run: docker-compose push
+
+  deploy:
+    machine: true
+    environment:
+      - DOCKER_TLS_VERIFY: "1"
+      - DOCKER_CERT_PATH: "certs"
+      - IMAGE_NAME: exoscale/exoscale-circleci-node-app
+      - APP_VERSION: ${CIRCLE_SHA1}
+    steps:
+      - checkout
+      - run: sudo pip install s3cmd
+      - run: sudo apt-get update && sudo apt-get install jq
+      - run:
+          name: Download the certificates
+          command: |
+            mkdir certs
+            s3cmd --access_key $API_KEY \
+                  --secret_key $API_SECRET \
+                  --host sos-ch-dk-2.exo.io \
+                  --host-bucket '%(bucket)s.sos-ch-dk-2.exo.io'\
+                  get s3://exoscale-circleci-nodejs/certs/ --recursive certs
+      - run:
+          name: Setup Docker environment variables
+          command: |
+            echo "export APP_HOST=$(cat certs/config.json | jq '.Driver.IPAddress' --raw-output)" >> $BASH_ENV
+            source $BASH_ENV
+            echo "export DOCKER_HOST=tcp://$APP_HOST:2376" >> $BASH_ENV
+            source $BASH_ENV
+      - run: docker-compose pull
+      - run: APP_VERSION=$CIRCLE_SHA1 DOCKER_HOST=tcp://$APP_HOST:2376 docker-compose up -d
+      - run:
+          name: Curl the app to check it is running the correct version
+          command: |
+            [[ $(curl -q "http://$APP_HOST") == "Version: $CIRCLE_SHA1" ]] || false
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - test
+      - build:
+          requires:
+            - test
+          context: dockerhub
+      - deploy:
+          requires:
+            - build
+          context: exoscale
