@@ -1,9 +1,10 @@
 version: '3'
 services:
-  exoscale-ci-node-app:
+  exoscale-circleci-nodejs:
     build: .
-    image: exoscale/exoscale-ci-node-app:latest
+    image: exoscale/exoscale-circleci-nodejs:latest
     ports:
       - "80:3000"
     environment:
       - APP_VERSION=$APP_VERSION
+    container_name: node_app
