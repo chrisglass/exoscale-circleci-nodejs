@@ -1,4 +1,4 @@
-# exoscale-ci-node-app
+# exoscale-circleci-nodejs
 
 A minimal NodeJS server with no external dependencies. It runs on port 3000 and it responds with "Version: $APP_VERSION" when called.
 
