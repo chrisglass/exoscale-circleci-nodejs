@@ -57,7 +57,13 @@ workflows:
           requires:
             - test
           context: dockerhub
+          filters:
+            branches:
+              only: master
       - deploy:
           requires:
             - build
           context: exoscale
+          filters:
+            branches:
+              only: master
