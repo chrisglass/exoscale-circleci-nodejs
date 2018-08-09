@@ -15,7 +15,7 @@ jobs:
     machine:
       docker_layer_caching: true
     environment:
-      - IMAGE_NAME: exoscale/exoscale-circleci-nodejs
+      - IMAGE_NAME: tribaal/exoscale-circleci-nodejs
     steps:
       - checkout
       - run: docker-compose build
@@ -27,8 +27,8 @@ jobs:
     environment:
       - DOCKER_TLS_VERIFY: "1"
       - DOCKER_CERT_PATH: "certs"
-      - IMAGE_NAME: exoscale/exoscale-circleci-nodejs
-      - BUCKET_NAME: exoscale-circleci-nodejs
+      - IMAGE_NAME: tribaal/exoscale-circleci-nodejs
+      - BUCKET_NAME: sambuka
       - APP_VERSION: ${CIRCLE_SHA1}
     steps:
       - checkout

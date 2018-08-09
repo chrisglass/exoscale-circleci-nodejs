@@ -2,7 +2,7 @@ version: '3'
 services:
   exoscale-circleci-nodejs:
     build: .
-    image: exoscale/exoscale-circleci-nodejs:latest
+    image: tribaal/exoscale-circleci-nodejs:latest
     ports:
       - "80:3000"
     environment:
